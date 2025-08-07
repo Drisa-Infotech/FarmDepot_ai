@@ -6,9 +6,24 @@ import Translator
 from pydub import AudioSegment 
 from io import BytesIO
 
+st.title("🎙️ FarmDepot.ai - Audio Upload")
+
+uploaded_file = st.file_uploader("Upload your voice command", type=["wav", "mp3", "ogg"])
+
+if uploaded_file:
+    with st.spinner("Uploading and processing audio..."):
+        files = {"file": (uploaded_file.name, uploaded_file, uploaded_file.type)}
+        response = requests.post("http://localhost:8000/upload-audio/", files=files)
+        if response.ok:
+            st.success("Audio uploaded and converted successfully!")
+            st.json(response.json())
+        else:
+            st.error("Failed to process audio.")
+
+
 BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8000") translator = Translator()
 
-st.set_page_config(page_title="AgriVoice Classifieds", layout="wide")
+st.set_page_config(page_title="FarmDepot.ai", layout="wide")
 
 --- Sidebar Navigation ---
 
