@@ -1,0 +1,13 @@
+fastapi
+crewai
+uvicorn
+whisper
+openai
+langchain
+langchain-openai
+pydantic
+gtts
+python-multipart
+sqlalchemy
+psycopg2-binary
+streamlit

@@ -1,0 +1,11 @@
+agents:
+  - name: voice_agent
+    file: agents/voice_agent.py
+  - name: post_agent
+    file: agents/post_agent.py
+  - name: search_agent
+    file: agents/search_agent.py
+  - name: register_agent
+    file: agents/register_agent.py
+  - name: support_agent
+    file: agents/support_agent.py
