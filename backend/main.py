@@ -7,6 +7,8 @@ from agents.support_agent import support_agent
 from tasks.voice_tasks import process_voice_input, extract_product_details, text_to_speech
 from tasks.classified_tasks import post_product, search_products
 from tasks.register_tasks import register_user_voice
+from fastapi.middleware.cors import CORSMiddleware
+from utils.audio_utils import save_uploaded_audio, convert_to_wav
 
 app = FastAPI(title="FarmDepot.ai")
 
@@ -37,4 +39,18 @@ def search_product_route(query: str):
 @app.post("/register-voice")
 def register_voice_user(audio: UploadFile = File(...)):
     return register_user_voice(audio)
-    
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+@app.post("/upload-audio/")
+async def upload_audio(file: UploadFile = File(...)):
+    """Endpoint to handle audio file upload."""
+    saved_path = save_uploaded_audio(file)
+    wav_path = convert_to_wav(saved_path)
+    return {"message": "Audio uploaded and converted.", "path": wav_path}
