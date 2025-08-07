@@ -6,8 +6,9 @@ openai
 langchain
 langchain-openai
 pydantic
-gtts
+gTTS
 python-multipart
 sqlalchemy
 psycopg2-binary
 streamlit
+pydub
