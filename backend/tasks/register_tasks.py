@@ -1,29 +1,19 @@
-## agri_voice_classified/tasks/register_tasks.py
+
 import whisper
-from langchain.chains import LLMChain
-from langchain.prompts import PromptTemplate
-from langchain_openai import ChatOpenAI
 from db.models import User
-from db.session import SessionLocal
+from sqlalchemy.orm import sessionmaker
 import tempfile
+from sqlalchemy import create_engine
+from config import settings
+import os
+import json
+
+from utils.openrouter_api import openrouter_chat  # <-- Use the new utility
+
+engine = create_engine(settings.DB_URL)
+SessionLocal = sessionmaker(bind=engine)
 
 model = whisper.load_model("base")
-translator = ChatOpenAI(model_name="gpt-3.5-turbo", temperature=0.3)
-
-register_prompt = PromptTemplate(
-    input_variables=["text"],
-    template="""
-Extract user registration details from the text:
-- Full name
-- Phone number
-- Location
-
-Text: {text}
-
-Respond in JSON format with keys: name, phone, location.
-"""
-)
-register_chain = LLMChain(llm=translator, prompt=register_prompt)
 
 def register_user_voice(audio_file):
     db = SessionLocal()
@@ -33,7 +23,23 @@ def register_user_voice(audio_file):
 
     result = model.transcribe(temp_audio_path)
     text = result["text"]
-    data = eval(register_chain.run(text=text))
+
+    messages = [
+        {
+            "role": "system",
+            "content": (
+                "Extract user registration details from the text. "
+                "Return a JSON object with keys: name, phone, location."
+            )
+        },
+        {
+            "role": "user",
+            "content": text
+        }
+    ]
+    response = openrouter_chat(messages)
+    content = response['choices'][0]['message']['content']
+    data = json.loads(content)
 
     user = User(name=data['name'], phone=data['phone'], location=data['location'])
     db.add(user)
