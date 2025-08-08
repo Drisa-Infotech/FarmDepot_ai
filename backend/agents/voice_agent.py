@@ -1,6 +1,10 @@
-# backend/agents/voice_agent.py
+
 from crewai import Agent
 from backend.tasks.voice_tasks import transcribe_audio_task
+from sqlalchemy import create_engine
+from config import settings
+
+engine = create_engine(settings.DB_URL)
 
 voice_agent = Agent(
     role="Voice Interaction Specialist",
