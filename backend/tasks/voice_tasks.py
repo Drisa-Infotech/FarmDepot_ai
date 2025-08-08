@@ -1,29 +1,18 @@
-### agri_voice_classified/tasks/voice_tasks.py
+
 import whisper
 from gtts import gTTS
 import tempfile
-from langchain.chains import LLMChain
-from langchain.prompts import PromptTemplate
-from langchain_openai import ChatOpenAI
+from sqlalchemy import create_engine
+from config import settings
+import os
+import json
+from backend.utils.openrouter_api import openrouter_chat
 
+# Init DB connection
+engine = create_engine(settings.DB_URL)
+
+# Load Whisper model
 model = whisper.load_model("base")
-translator = ChatOpenAI(model_name="gpt-3.5-turbo", temperature=0.3)
-
-extract_prompt = PromptTemplate(
-    input_variables=["text"],
-    template="""
-Extract the following details from the text:
-- Product Name
-- Quantity
-- Price per unit (in Naira)
-- Location
-
-Text: {text}
-
-Respond in JSON format with keys: name, quantity, price, location.
-"""
-)
-extract_chain = LLMChain(llm=translator, prompt=extract_prompt)
 
 def process_voice_input(audio_file):
     try:
@@ -51,11 +40,62 @@ def extract_product_details(audio_file):
 
     result = model.transcribe(temp_audio_path)
     user_text = result["text"]
-    response = extract_chain.run(text=user_text)
-    return eval(response)  # JSON-like string
+    
+    messages = [
+        {
+            "role": "system",
+            "content": "Extract the following product details from the input as JSON with keys: name, quantity, price, location."
+        },
+        {"role": "user", "content": user_text}
+    ]
+
+    response = openrouter_chat(messages)
+    return json.loads(response['choices'][0]['message']['content'])
+
+def extract_details_with_openrouter(text):
+    messages = [
+        {
+            "role": "system",
+            "content": "Extract the following details from the text: Product Name, Quantity, Price per unit (in Naira), Location. Respond in JSON format with keys: name, quantity, price, location."
+        },
+        {"role": "user", "content": text}
+    ]
+    response = openrouter_chat(messages)
+    return json.loads(response['choices'][0]['message']['content'])
 
 def text_to_speech(text):
     tts = gTTS(text=text, lang='en')
     with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as f:
         tts.save(f.name)
         return f.name
+
+from backend.utils.audio_utils import (
+    transcribe_audio,
+    synthesize_speech
+)
+
+from backend.utils.translation_utils import (
+    translate_text
+)
+
+# Transcription Task
+def transcribe_audio_task(audio_file_path: str, language: str = "en") -> str:
+    """
+    Transcribes the given audio file using Whisper via OpenRouter.
+    """
+    return transcribe_audio(audio_file_path, language)
+
+# TTS Task
+def text_to_speech_task(text: str, language: str = "en", voice: str = "default") -> str:
+    """
+    Converts text to speech using OpenRouter TTS (or any backend you configure).
+    Returns the path to the generated audio file.
+    """
+    return synthesize_speech(text, language, voice)
+
+# Translation Task
+def translate_text_task(text: str, source_lang: str = "auto", target_lang: str = "en") -> str:
+    """
+    Translates the input text to the target language.
+    """
+    return translate_text(text, source_lang, target_lang)
