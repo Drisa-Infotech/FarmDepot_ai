@@ -1,14 +1,18 @@
 from fastapi import FastAPI, UploadFile, File
-from agents.voice_agent import voice_agent
-from agents.post_agent import post_agent
-from agents.search_agent import search_agent
-from agents.register_agent import register_agent
-from agents.support_agent import support_agent
+from .agents.voice_agent import voice_agent
+from .agents.post_agent import post_agent
+from .agents.search_agent import search_agent
+from .agents.register_agent import register_agent
+from .agents.support_agent import support_agent
 from tasks.voice_tasks import process_voice_input, extract_product_details, text_to_speech
 from tasks.classified_tasks import post_product, search_products
 from tasks.register_tasks import register_user_voice
 from fastapi.middleware.cors import CORSMiddleware
 from utils.audio_utils import save_uploaded_audio, convert_to_wav
+from sqlalchemy import create_engine
+from config import settings
+
+engine = create_engine(settings.DB_URL)
 
 app = FastAPI(title="FarmDepot.ai")
 
