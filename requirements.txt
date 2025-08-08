@@ -5,6 +5,7 @@ whisper
 openai
 langchain
 langchain-openai
+langchain-community
 pydantic
 gTTS
 python-multipart
@@ -13,3 +14,8 @@ psycopg2-binary
 streamlit
 pydub
 FFmpeg
+googletrans
+fastapi-utils
+openai-whisper
+uuid
+python-dotenv
