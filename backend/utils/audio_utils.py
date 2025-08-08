@@ -4,10 +4,11 @@ from gtts import gTTS
 from pydub import AudioSegment
 import streamlit as st
 import requests
+from uuid import uuid4
 
 st.set_page_config(page_title="FarmDepot.ai - Voice-Powered Agri Marketplace", layout="wide")
 
-BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
+BACKEND_URL = os.getenv("BACKEND_URL", "http://127.0.0.1:8000")
 
 st.title("🌾 FarmDepot.ai - Voice-Powered Agri Marketplace")
 
@@ -141,3 +142,38 @@ if res.status_code == 200:
             st.write(f"**Contact:** {p['contact']}")
 else:
     st.error("Could not load products.")
+
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
+
+def transcribe_audio(audio_path: str, language: str = "en") -> str:
+    url = "https://openrouter.ai/api/whisper"
+    headers = {
+        "Authorization": f"Bearer {OPENROUTER_API_KEY}"
+    }
+    with open(audio_path, "rb") as audio_file:
+        files = {"file": audio_file}
+        data = {"language": language}
+        response = requests.post(url, headers=headers, files=files, data=data)
+    response.raise_for_status()
+    return response.json().get("text", "")
+
+def synthesize_speech(text: str, language: str = "en", voice: str = "default") -> str:
+    url = "https://openrouter.ai/api/tts"
+    headers = {
+        "Authorization": f"Bearer {OPENROUTER_API_KEY}"
+    }
+    data = {
+        "text": text,
+        "language": language,
+        "voice": voice
+    }
+    response = requests.post(url, headers=headers, json=data)
+    response.raise_for_status()
+
+    # Save audio file
+    audio_data = response.content
+    audio_path = f"static/audios/tts_{uuid4().hex}.mp3"
+    os.makedirs(os.path.dirname(audio_path), exist_ok=True)
+    with open(audio_path, "wb") as f:
+        f.write(audio_data)
+    return audio_path
