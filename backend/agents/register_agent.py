@@ -1,6 +1,10 @@
-# backend/agents/register_agent.py
+
 from crewai import Agent
 from backend.tasks.register_tasks import register_user_task
+from sqlalchemy import create_engine
+from config import settings
+
+engine = create_engine(settings.DB_URL)
 
 register_agent = Agent(
     role="User Registration Agent",
