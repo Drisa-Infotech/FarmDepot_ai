@@ -1,6 +1,10 @@
 from fastapi import HTTPException
 from backend.db import get_db_connection
 from datetime import datetime
+from sqlalchemy import create_engine
+from config import settings
+
+engine = create_engine(settings.DB_URL)
 
 
 def post_product(product_data: dict):
