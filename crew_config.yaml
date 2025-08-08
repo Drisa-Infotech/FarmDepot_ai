@@ -1,11 +1,31 @@
 agents:
-  - name: voice_agent
-    file: agents/voice_agent.py
-  - name: post_agent
-    file: agents/post_agent.py
-  - name: search_agent
-    file: agents/search_agent.py
-  - name: register_agent
-    file: agents/register_agent.py
-  - name: support_agent
-    file: agents/support_agent.py
+  - role: TranscriberAgent
+    goal: Convert voice recordings to text
+    backstory: You are an expert speech-to-text transcriber using OpenAI Whisper.
+    tools: [transcribe_audio]
+
+  - role: ClassifierAgent
+    goal: Classify the product in a voice ad
+    backstory: You are a product classification specialist.
+    tools: [classify_text]
+
+  - role: TranslatorAgent
+    goal: Translate voice ad to user's preferred language
+    backstory: You translate ads to improve discoverability.
+    tools: [translate_text]
+
+tasks:
+  - description: Transcribe voice ad and extract ad content
+    agent: TranscriberAgent
+
+  - description: Classify product category
+    agent: ClassifierAgent
+
+  - description: Translate to selected language
+    agent: TranslatorAgent
+
+crew:
+  name: ClassifiedPostingCrew
+  description: A crew to handle posting of voice-based classified ads
+  agents: [TranscriberAgent, ClassifierAgent, TranslatorAgent]
+  tasks: [0, 1, 2]
