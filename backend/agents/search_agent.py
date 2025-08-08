@@ -1,6 +1,10 @@
-# backend/agents/search_agent.py
+
 from crewai import Agent
 from backend.tasks.voice_tasks import search_ad_task
+from sqlalchemy import create_engine
+from config import settings
+
+engine = create_engine(settings.DB_URL)
 
 search_agent = Agent(
     role="Ad Search Agent",
